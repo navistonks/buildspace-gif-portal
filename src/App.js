@@ -7,14 +7,18 @@ const TWITTER_HANDLE = '_buildspace';
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 
 const TEST_GIFS = [
-  'https://media4.giphy.com/media/jJjb9AUHOiP3nJJMdy/giphy360p.mp4?cid=ecf05e47ajijj2x3bwwma1r6uxbd35s1qrhp3r5zyff7glmn&rid=giphy360p.mp4&ct=v',
-  'https://giphy.com/embed/jJjb9AUHOiP3nJJMdy/video',
+  'https://i.giphy.com/media/MDJ9IbxxvDUQM/giphy.webp',
+  'https://i.giphy.com/media/jp2KXzsPtoKFG/giphy.webp',
+  'https://i.giphy.com/media/6MWahPArixa6I/giphy.webp',
+  'https://i.giphy.com/media/zZMTVkTeEfeEg/giphy.webp'
 
 ]
 
 const App = () => {
 
   const [walletAddress, setWalletAddress] = useState(null);
+  const [inputValue, setInputValue] = useState('');
+  const [gifList, setGifList] = useState([]);
 
   const checkIfWalletIsConnected = async () => {
     try {
@@ -48,23 +52,45 @@ const App = () => {
       setWalletAddress(response.publicKey.toString());
     }
   };
+  const sendGif = async () => {
+    if (inputValue.length > 0) {
+      console.log('Gif link:', inputValue);
+      setGifList([...gifList, inputValue]);
+      setInputValue('');
+    } else {
+      console.log('Empty input. Try again.')
+    }
+  }
+  const onInputChange = (event) => {
+    const { value } = event.target;
+    setInputValue(value);
+  }
 
   const renderNotConnectedContainer = () => (
     <button className="cta-button connect-wallet-button"
       onClick={connectWallet}> Connect to wallet </button>
   )
 
-  const renderConnectedContainer = () => (
-    <div className="connected-container">
-      <div className="gif-grid">
-        {TEST_GIFS.map(gif => (
-          <div className="gif-item" key={gif}>
-            <img src={gif} alt={gif} />
-          </div>
-        ))}
+  const renderConnectedContainer = () => {
+    return (
+      <div className="connected-container">
+        <form onSubmit={(event) => {
+          event.preventDefault();
+          sendGif();
+        }}>
+          <input type="text" placeholder="Enter gif link!" value={inputValue} onChange={onInputChange} />
+          <button type="submit" className="cta-button submit-gif-button"> Submit </button>
+        </form>
+        <div className="gif-grid">
+          {gifList.map(gif => (
+            <div className="gif-item" key={gif}>
+              <img src={gif} alt={gif} />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    )
+  };
 
 
   useEffect(() => {
@@ -75,16 +101,28 @@ const App = () => {
     return () => window.removeEventListener('load', onLoad);
   }, []);
 
+  useEffect(() => {
+    if (walletAddress) {
+      console.log('Fetching GIF list...')
+      // Call Solana program here
+
+      // Set state
+      setGifList(TEST_GIFS);
+    }
+  }, [walletAddress]);
+
+
 
   return (
     <div className="App">
       <div className="container">
         <div className="header-container">
-          <p className="header">The Best Meme Gifs</p>
+          <p className="header">🖼 GIF Portal</p>
           <p className="sub-text">
-            Cute animals GIF collection 🐶
+            View your GIF collection in the metaverse ✨
           </p>
-          <div className={walletAddress ? 'authed-container' : 'container'}>
+          {/* This was solely added for some styling fanciness */}
+          <div className={walletAddress ? "authed-container" : "container"}>
             {!walletAddress && renderNotConnectedContainer()}
             {walletAddress && renderConnectedContainer()}
           </div>
